@@ -9,10 +9,10 @@ const int led1Pin    = 11;
 const int led2Pin    = 10;
 
 // Timing constants
-const unsigned long relayOnTime = 20000;  // 20 sec
-const unsigned long ledOnTime   = 5000;  // 50 sec
+const unsigned long relayOnTime = 20000;  // 20 sec for the train and wheel relays
+const unsigned long ledOnTime   = 10000;  // 10 sec?
 const unsigned long fadeTime    = 5000;   // 5 sec
-const unsigned long morseDash   = 200;    // 200 ms per dash
+const unsigned long morseDash   = 1000;    // 1s per dash
 
 // LED PWM channels
 const int led1Channel = 0;
@@ -120,9 +120,9 @@ void loop() {
     if (now - morseStart >= dashIndex * morseDash + morseStep * morseDash) {
       ledcWrite(led2Channel, (dashIndex == 0) ? 255 : 0);
       morseStep++;
-      if (morseStep >= 6) { // 3 dashes
+      if (morseStep >= 10) { // 6 for  3 dashes on/off etc can chang this number to get like more blinkks in a row 
         morseActive = false;
-        ledcWrite(led2Channel, ledBrightness); // back to normal PWM
+        ledcWrite(led2Channel, ledBrightness); // back to normal PWM the fade in out pattern like turn off morsing if steps ar more thn total
       }
     }
   } else {
