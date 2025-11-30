@@ -13,6 +13,9 @@ const unsigned long relayOnTime = 20000;  // 20 sec for the train and wheel rela
 const unsigned long ledOnTime   = 10000;  // 10 sec?
 const unsigned long fadeTime    = 5000;   // 5 sec
 const unsigned long morseDash   = 1000;    // 1s per dash
+const unsigned long morseOnTime  = 400;  // ON duration
+const unsigned long morseOffTime = 600;  // OFF duration
+
 
 // LED PWM channels
 const int led1Channel = 0;
@@ -114,22 +117,31 @@ void loop() {
       break;
   }
 
-  // --- Handle LED2 morse dash-dash-dash ---
-  if (morseActive) {
-    int dashIndex = morseStep % 2; // 0=on,1=off
-    if (now - morseStart >= dashIndex * morseDash + morseStep * morseDash) {
-      ledcWrite(led2Channel, (dashIndex == 0) ? 255 : 0);
-      morseStep++;
-      if (morseStep >= 10) { // 6 for  3 dashes on/off etc can chang this number to get like more blinkks in a row 
-        morseActive = false;
-        ledcWrite(led2Channel, ledBrightness); // back to normal PWM the fade in out pattern like turn off morsing if steps ar more thn total
-      }
+// --- Handle LED2 morse ---
+if (morseActive) {
+    int dashIndex = morseStep % 2; // 0 = LED on, 1 = LED off
+    unsigned long stepDuration = (dashIndex == 0) ? morseOnTime : morseOffTime;
+
+    if (now - morseStart >= stepDuration) {
+        // Toggle LED
+        ledcWrite(led2Channel, (dashIndex == 0) ? 255 : 0);
+
+        // Prepare for next step
+        morseStart = now;
+        morseStep++;
+
+        // Stop after 5 blinks (5 ON + 5 OFF = 10 steps) can change this to any integer really
+        if (morseStep >= 10) {
+            morseActive = false;
+            ledcWrite(led2Channel, ledBrightness); // back to normal PWM if total steps reached
+        }
     }
-  } else {
+} else {
     // Normal fading
     ledcWrite(led1Channel, ledBrightness);
     ledcWrite(led2Channel, ledBrightness);
-  }
+}
+
 
   delay(10); // tiny delay for stability
 }
